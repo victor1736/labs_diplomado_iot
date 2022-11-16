@@ -21,7 +21,10 @@
 /******************************************************************************************
  * Definitions
  *****************************************************************************************/
-
+#define BOARD_LED_GPIO1     BOARD_LED_RED_GPIO
+#define BOARD_LED_GPIO_PIN1 BOARD_LED_RED_GPIO_PIN
+#define BOARD_LED_GPIO2     BOARD_LED_GREEN_GPIO
+#define BOARD_LED_GPIO_PIN2 BOARD_LED_GREEN_GPIO_PIN
 /******************************************************************************************
  * Private prototypes
  *****************************************************************************************/
@@ -35,9 +38,25 @@
  *****************************************************************************************/
     volatile static int i = 0 ;
     float voltaje=12.5f;
+    volatile uint32_t g_systickCounter;
 /******************************************************************************************
  * Private Source Code
  *****************************************************************************************/
+    void SysTick_Handler(void)
+    {
+        if (g_systickCounter != 0U)
+        {
+            g_systickCounter--;
+        }
+    }
+
+    void SysTick_DelayTicks(uint32_t n)
+    {
+        g_systickCounter = n;
+        while (g_systickCounter != 0U)
+        {
+        }
+    }
 int main(void) {
 
     /* Init board hardware. */
@@ -48,6 +67,12 @@ int main(void) {
     /* Init FSL debug console. */
     BOARD_InitDebugConsole();
 #endif
+    if (SysTick_Config(SystemCoreClock / 1000U))
+    {
+        while (1)
+        {
+        }
+    }
 
     PRINTF("Hola mundo\r\n");
     PRINTF("Voltaje: %2.3f\r\n",voltaje);
@@ -57,6 +82,11 @@ int main(void) {
     /* Enter an infinite loop, just incrementing a counter. */
     while(1) {
         i++ ;
+        /* Delay 1000 ms */
+        SysTick_DelayTicks(1000U);
+        GPIO_PortToggle(BOARD_LED_GPIO1, 1u << BOARD_LED_GPIO_PIN1);
+        SysTick_DelayTicks(1000U);
+        GPIO_PortToggle(BOARD_LED_GPIO2, 1u << BOARD_LED_GPIO_PIN2);
         /* 'Dummy' NOP to allow source level single stepping of
             tight while() loop */
         __asm volatile ("nop");
