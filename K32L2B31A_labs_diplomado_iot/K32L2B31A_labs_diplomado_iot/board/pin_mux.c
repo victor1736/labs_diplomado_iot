@@ -99,6 +99,10 @@ void BOARD_InitBootPins(void)
     BOARD_InitDEBUG_UARTPins();
     BOARD_InitLM35();
     BOARD_InitSensLuz();
+<<<<<<< HEAD
+=======
+    BOARD_InitLEDS();
+>>>>>>> develop
 }
 
 /* clang-format off */
@@ -457,10 +461,8 @@ void BOARD_InitBUTTONSPins(void)
 BOARD_InitLEDsPins:
 - options: {callFromInitBoot: 'false', prefix: BOARD_, coreID: core0, enableClock: 'true'}
 - pin_list:
-  - {pin_num: '19', peripheral: GPIOE, signal: 'GPIO, 31', pin_signal: PTE31/TPM0_CH4, direction: OUTPUT, gpio_init_state: 'true', slew_rate: slow, pull_select: down,
-    pull_enable: disable}
-  - {pin_num: '62', peripheral: GPIOD, signal: 'GPIO, 5', pin_signal: LCD_P45/ADC0_SE6b/PTD5/SPI1_SCK/UART2_TX/TPM0_CH5/FXIO0_D5, direction: OUTPUT, gpio_init_state: 'true',
-    slew_rate: slow, pull_select: down, pull_enable: disable}
+  - {pin_num: '62', peripheral: GPIOD, signal: 'GPIO, 5', pin_signal: LCD_P45/ADC0_SE6b/PTD5/SPI1_SCK/UART2_TX/TPM0_CH5/FXIO0_D5, direction: OUTPUT, pull_select: no_init}
+  - {pin_num: '19', peripheral: GPIOE, signal: 'GPIO, 31', pin_signal: PTE31/TPM0_CH4, direction: OUTPUT, gpio_init_state: 'false', pull_select: no_init}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -471,53 +473,7 @@ BOARD_InitLEDsPins:
  * Description   : Configures pin routing and optionally pin electrical features.
  *
  * END ****************************************************************************************************************/
-void BOARD_InitLEDsPins(void)
-{
-    /* Port D Clock Gate Control: Clock enabled */
-    CLOCK_EnableClock(kCLOCK_PortD);
-    /* Port E Clock Gate Control: Clock enabled */
-    CLOCK_EnableClock(kCLOCK_PortE);
 
-    gpio_pin_config_t LED1_config = {
-        .pinDirection = kGPIO_DigitalOutput,
-        .outputLogic = 1U
-    };
-    /* Initialize GPIO functionality on pin PTD5 (pin 62)  */
-    GPIO_PinInit(BOARD_LED1_GPIO, BOARD_LED1_PIN, &LED1_config);
-
-    gpio_pin_config_t LED2_config = {
-        .pinDirection = kGPIO_DigitalOutput,
-        .outputLogic = 1U
-    };
-    /* Initialize GPIO functionality on pin PTE31 (pin 19)  */
-    GPIO_PinInit(BOARD_LED2_GPIO, BOARD_LED2_PIN, &LED2_config);
-
-    const port_pin_config_t LED1 = {/* Internal pull-up/down resistor is disabled */
-                                    kPORT_PullDisable,
-                                    /* Slow slew rate is configured */
-                                    kPORT_SlowSlewRate,
-                                    /* Passive filter is disabled */
-                                    kPORT_PassiveFilterDisable,
-                                    /* Low drive strength is configured */
-                                    kPORT_LowDriveStrength,
-                                    /* Pin is configured as PTD5 */
-                                    kPORT_MuxAsGpio};
-    /* PORTD5 (pin 62) is configured as PTD5 */
-    PORT_SetPinConfig(BOARD_LED1_PORT, BOARD_LED1_PIN, &LED1);
-
-    const port_pin_config_t LED2 = {/* Internal pull-up/down resistor is disabled */
-                                    kPORT_PullDisable,
-                                    /* Slow slew rate is configured */
-                                    kPORT_SlowSlewRate,
-                                    /* Passive filter is disabled */
-                                    kPORT_PassiveFilterDisable,
-                                    /* Low drive strength is configured */
-                                    kPORT_LowDriveStrength,
-                                    /* Pin is configured as PTE31 */
-                                    kPORT_MuxAsGpio};
-    /* PORTE31 (pin 19) is configured as PTE31 */
-    PORT_SetPinConfig(BOARD_LED2_PORT, BOARD_LED2_PIN, &LED2);
-}
 
 /* clang-format off */
 /*
@@ -788,7 +744,12 @@ void BOARD_InitOSCPins(void)
  * TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
 BOARD_InitLM35:
 - options: {callFromInitBoot: 'true', coreID: core0, enableClock: 'true'}
+<<<<<<< HEAD
 - pin_list: []
+=======
+- pin_list:
+  - {pin_num: '12', peripheral: ADC0, signal: 'SE, 7a', pin_signal: ADC0_DM3/ADC0_SE7a/PTE23/TPM2_CH1/UART2_RX/FXIO0_D7}
+>>>>>>> develop
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -801,6 +762,14 @@ BOARD_InitLM35:
  * END ****************************************************************************************************************/
 void BOARD_InitLM35(void)
 {
+<<<<<<< HEAD
+=======
+    /* Port E Clock Gate Control: Clock enabled */
+    CLOCK_EnableClock(kCLOCK_PortE);
+
+    /* PORTE23 (pin 12) is configured as ADC0_SE7a */
+    PORT_SetPinMux(PORTE, 23U, kPORT_PinDisabledOrAnalog);
+>>>>>>> develop
 }
 
 /* clang-format off */
@@ -828,6 +797,54 @@ void BOARD_InitSensLuz(void)
     /* PORTE22 (pin 11) is configured as ADC0_SE3 */
     PORT_SetPinMux(PORTE, 22U, kPORT_PinDisabledOrAnalog);
 }
+<<<<<<< HEAD
+=======
+
+/* clang-format off */
+/*
+ * TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+BOARD_InitLEDS:
+- options: {callFromInitBoot: 'true', coreID: core0, enableClock: 'true'}
+- pin_list: []
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
+ */
+/* clang-format on */
+
+/* FUNCTION ************************************************************************************************************
+ *
+ * Function Name : BOARD_InitLEDS
+ * Description   : Configures pin routing and optionally pin electrical features.
+ *
+ * END ****************************************************************************************************************/
+void BOARD_InitLEDS(void)
+{
+
+    /* Port D Clock Gate Control: Clock enabled */
+    CLOCK_EnableClock(kCLOCK_PortD);
+    /* Port E Clock Gate Control: Clock enabled */
+    CLOCK_EnableClock(kCLOCK_PortE);
+
+    gpio_pin_config_t LED1_config = {
+        .pinDirection = kGPIO_DigitalOutput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PTD5 (pin 62)  */
+    GPIO_PinInit(BOARD_LED1_GPIO, BOARD_LED1_PIN, &LED1_config);
+
+    gpio_pin_config_t LED2_config = {
+        .pinDirection = kGPIO_DigitalOutput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PTE31 (pin 19)  */
+    GPIO_PinInit(BOARD_LED2_GPIO, BOARD_LED2_PIN, &LED2_config);
+
+    /* PORTD5 (pin 62) is configured as PTD5 */
+    PORT_SetPinMux(BOARD_LED1_PORT, BOARD_LED1_PIN, kPORT_MuxAsGpio);
+
+    /* PORTE31 (pin 19) is configured as PTE31 */
+    PORT_SetPinMux(BOARD_LED2_PORT, BOARD_LED2_PIN, kPORT_MuxAsGpio);
+}
+>>>>>>> develop
 /***********************************************************************************************************************
  * EOF
  **********************************************************************************************************************/
