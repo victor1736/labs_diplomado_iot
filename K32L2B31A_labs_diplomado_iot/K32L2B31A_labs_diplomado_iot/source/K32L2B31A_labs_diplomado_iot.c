@@ -18,6 +18,7 @@
 #include "clock_config.h"
 #include "K32L2B31A.h"
 #include "fsl_debug_console.h"
+#include "fsl_adc16.h"
 /******************************************************************************************
  * Definitions
  *****************************************************************************************/
@@ -37,7 +38,11 @@
  * Local vars
  *****************************************************************************************/
     volatile static int i = 0 ;
-    float voltaje=12.5f;
+    float voltaje;
+    float corriente;
+    float luz;
+    float RLDR;
+    uint32_t dato_adc;
     volatile uint32_t g_systickCounter;
 /******************************************************************************************
  * Private Source Code
@@ -75,7 +80,8 @@ int main(void) {
     }
 
     PRINTF("Hola mundo\r\n");
-    PRINTF("Voltaje: %2.3f\r\n",voltaje);
+
+
 
     /* Force the counter to be placed into memory. */
     volatile static int i = 0 ;
@@ -90,6 +96,31 @@ int main(void) {
         /* 'Dummy' NOP to allow source level single stepping of
             tight while() loop */
         __asm volatile ("nop");
+
+        /*Configurar canal ADC por donde se desea lectura
+         *dar señal de star al ADC*/
+        ADC16_SetChannelConfig(ADC0_PERIPHERAL, ADC0_CH0_CONTROL_GROUP, &ADC0_channelsConfig[0]);
+        /* Esperar que el ADC finalice el ADC */
+        while (0U == (kADC16_ChannelConversionDoneFlag & ADC16_GetChannelStatusFlags(ADC0_PERIPHERAL, ADC0_CH0_CONTROL_GROUP)))
+        {
+        }
+        /*
+         * dato_adc = 12 bits
+         * VREFH = 3.3V
+         * VREFL = 0V
+         * Resistencia = 10k
+         */
+        dato_adc =ADC16_GetChannelConversionValue(ADC0_PERIPHERAL, ADC0_CH0_CONTROL_GROUP);
+
+        /* Captura de dato del ADC e imprime por consola */
+        PRINTF("ADC Value: %d\r\n", dato_adc );
+        voltaje=(dato_adc*3.3)/4096;
+        RLDR=(10000)/((3.3/voltaje)-1);
+        PRINTF("Voltaje: %2.3f\r\n",voltaje);
+        corriente=voltaje*RLDR*1000000;
+        PRINTF("Corriente: %2.3f\r\n",corriente);
+        luz=500/RLDR;
+        PRINTF("Luz: %2.3f\r\n",luz);
     }
-    return 0 ;
+return 0 ;
 }
