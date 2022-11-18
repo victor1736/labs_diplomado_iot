@@ -17,8 +17,10 @@
 #include "pin_mux.h"
 #include "clock_config.h"
 #include "K32L2B31A.h"
+
 #include "fsl_debug_console.h"
 #include "fsl_adc16.h"
+#include "lpuart0.h"
 /******************************************************************************************
  * Definitions
  *****************************************************************************************/
@@ -44,9 +46,11 @@
     float RLDR;
     uint32_t dato_adc;
     volatile uint32_t g_systickCounter;
+
 /******************************************************************************************
  * Private Source Code
  *****************************************************************************************/
+
     void SysTick_Handler(void)
     {
         if (g_systickCounter != 0U)
@@ -88,6 +92,12 @@ int main(void) {
     /* Enter an infinite loop, just incrementing a counter. */
     while(1) {
         i++ ;
+        if (leer_bandera_nuevo_dato ()!=0){
+        	PRINTF("dato lpuat0: %d \r\n",leer_dato());
+        	PRINTF("dato lpuat0: 0x%x \r\n",leer_dato());
+        	PRINTF("dato lpuat0: %c \r\n",leer_dato());
+        	escribir_bandera_nuevo_dato (0);
+        }
         /* Delay 1000 ms */
         SysTick_DelayTicks(1000U);
         GPIO_PortToggle(BOARD_LED_GPIO1, 1u << BOARD_LED_GPIO_PIN1);
@@ -120,6 +130,8 @@ int main(void) {
         PRINTF("Corriente: %2.3f\r\n",corriente);
         luz=3.0303*corriente;
         PRINTF("Luz: %3f\r\n",luz);
+
+
     }
 return 0 ;
 }

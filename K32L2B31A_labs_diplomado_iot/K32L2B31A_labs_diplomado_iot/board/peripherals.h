@@ -11,6 +11,8 @@
  **********************************************************************************************************************/
 #include "fsl_common.h"
 #include "fsl_adc16.h"
+#include "fsl_lpuart.h"
+#include "fsl_clock.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -34,6 +36,14 @@ extern "C" {
 #define ADC0_CH0_CONTROL_GROUP 0
 /* Channel 1 (SE.7a) conversion control group. */
 #define ADC0_CH1_CONTROL_GROUP 0
+/* Definition of peripheral ID */
+#define LPUART0_PERIPHERAL LPUART0
+/* Definition of the clock source frequency */
+#define LPUART0_CLOCK_SOURCE 48000000UL
+/* LPUART0 interrupt vector ID (number). */
+#define LPUART0_SERIAL_RX_TX_IRQN LPUART0_IRQn
+/* LPUART0 interrupt handler identifier. */
+#define LPUART0_SERIAL_RX_TX_IRQHANDLER LPUART0_IRQHandler
 
 /***********************************************************************************************************************
  * Global variables
@@ -41,6 +51,7 @@ extern "C" {
 extern adc16_channel_config_t ADC0_channelsConfig[2];
 extern const adc16_config_t ADC0_config;
 extern const adc16_channel_mux_mode_t ADC0_muxMode;
+extern const lpuart_config_t LPUART0_config;
 
 /***********************************************************************************************************************
  * Initialization functions
