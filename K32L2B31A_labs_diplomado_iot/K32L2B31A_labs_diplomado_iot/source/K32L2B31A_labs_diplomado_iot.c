@@ -115,12 +115,11 @@ int main(void) {
         /* Captura de dato del ADC e imprime por consola */
         PRINTF("ADC Value: %d\r\n", dato_adc );
         voltaje=(dato_adc*3.3)/4096;
-        RLDR=(10000)/((3.3/voltaje)-1);
         PRINTF("Voltaje: %2.3f\r\n",voltaje);
-        corriente=voltaje*RLDR*1000000;
+        corriente=((3.3-voltaje)/10000)*1000000;
         PRINTF("Corriente: %2.3f\r\n",corriente);
-        luz=500/RLDR;
-        PRINTF("Luz: %2.3f\r\n",luz);
+        luz=3.0303*corriente;
+        PRINTF("Luz: %3f\r\n",luz);
     }
 return 0 ;
 }

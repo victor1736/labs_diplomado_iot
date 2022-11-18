@@ -1,0 +1,12 @@
+"Task Aware Debugger for GDB" version 11.6.1 (202207200623)
+(c) 2016-2022 NXP Semiconductors, Inc.
+==================================
+14:38:37.231 INFO: [ZephyrRTOS] A:\Diplomado_IoT\NXP\Repositorios\labs_diplomado_iot\K32L2B31A_labs_diplomado_iot\K32L2B31A_labs_diplomado_iot\Debug\.config file could not be read
+14:38:37.231 INFO: [TadModel] DSF session ID 14 has started.
+14:39:06.586 INFO: [TadState] TAD state changed: DEBUG_STARTED -> DEBUG_INIT_0 (RESUMED, USER_REQUEST)
+14:39:06.860 INFO: [TadState] TAD state changed: DEBUG_INIT_0 -> DEBUG_INIT_1 (SUSPENDED, SIGNAL)
+14:39:08.887 INFO: [TadState] TAD state changed: DEBUG_INIT_1 -> DEBUG_SUSPENDED (RESUMED, USER_REQUEST)
+14:39:08.990 INFO: [TadState] TAD state changed: DEBUG_SUSPENDED -> DEBUG_SUSPENDED (SUSPENDED, BREAKPOINT)
+14:39:15.828 INFO: [TadState] TAD state changed: DEBUG_SUSPENDED -> DEBUG_RESUMED (RESUMED, USER_REQUEST)
+14:39:45.53 INFO: [TadState] TAD state changed: DEBUG_RESUMED -> READY (SUSPENDED, SIGNAL)
+14:39:46.349 INFO: [TadModel] DSF session ID 14 has ended.
