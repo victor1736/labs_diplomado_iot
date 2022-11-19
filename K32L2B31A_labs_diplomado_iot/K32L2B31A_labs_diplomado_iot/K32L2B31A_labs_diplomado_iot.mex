@@ -294,17 +294,14 @@
                   </dependency>
                </dependencies>
                <pins>
-                  <pin peripheral="GPIOD" signal="GPIO, 5" pin_num="62" pin_signal="LCD_P45/ADC0_SE6b/PTD5/SPI1_SCK/UART2_TX/TPM0_CH5/FXIO0_D5">
-                     <pin_features>
-                        <pin_feature name="direction" value="OUTPUT"/>
-                        <pin_feature name="pull_select" value="no_init"/>
-                     </pin_features>
-                  </pin>
                   <pin peripheral="GPIOE" signal="GPIO, 31" pin_num="19" pin_signal="PTE31/TPM0_CH4">
                      <pin_features>
                         <pin_feature name="direction" value="OUTPUT"/>
-                        <pin_feature name="gpio_init_state" value="false"/>
-                        <pin_feature name="pull_select" value="no_init"/>
+                     </pin_features>
+                  </pin>
+                  <pin peripheral="GPIOD" signal="GPIO, 5" pin_num="62" pin_signal="LCD_P45/ADC0_SE6b/PTD5/SPI1_SCK/UART2_TX/TPM0_CH5/FXIO0_D5">
+                     <pin_features>
+                        <pin_feature name="direction" value="OUTPUT"/>
                      </pin_features>
                   </pin>
                </pins>

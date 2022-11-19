@@ -1,21 +1,20 @@
-/*! @file : leds.h
+/*! @file : sensor_luz.h
  * @author  Victor Alfonso Fernandez Hoyos
  * @version 1.0.0
- * @date    18/11/2022
+ * @date    19/11/2022
  * @brief   Driver para 
  * @details
  *
  */
-#ifndef LIBRERIA_IOT_LEDS_H_
-#define LIBRERIA_IOT_LEDS_H_
+#ifndef LIBRERIA_IOT_SENSOR_LUZ_H_
+#define LIBRERIA_IOT_SENSOR_LUZ_H_
 /*******************************************************************************
  * Includes
  ******************************************************************************/
+
+
 #include "fsl_common.h"
-#include "fsl_gpio.h"
-#include "fsl_port.h"
-#include "fsl_pit.h"
-#include "fsl_smc.h"
+#include "fsl_adc16.h"
 
 /*!
  * @addtogroup X
@@ -40,9 +39,9 @@
 /*******************************************************************************
  * Public Prototypes
  ******************************************************************************/
-void encender_led_rojo(void);
-void apagar_led_rojo(void);
+ uint32_t sensor_luz(void);
+
 /** @} */ // end of X group
 /** @} */ // end of X group
 
-#endif /* LIBRERIA_IOT_LEDS_H_ */
+#endif /* LIBRERIA_IOT_SENSOR_LUZ_H_ */
