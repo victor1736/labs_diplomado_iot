@@ -20,7 +20,7 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-
+#define LPUART0_BUFFER_SIZE_MAX 100
 
 /*******************************************************************************
  * Private Prototypes
@@ -35,9 +35,9 @@
 /*******************************************************************************
  * Local vars
  ******************************************************************************/
-    static uint8_t dato_lpuart0=0;
+    static uint8_t dato_lpuart0[LPUART0_BUFFER_SIZE_MAX];
     static uint8_t flag_nuevo_dato_lpuart0=0;
-
+    static uint8_t dato_lpuart0_index=0;
 /*******************************************************************************
  * Private Source Code
  ******************************************************************************/
@@ -52,7 +52,11 @@
       /* verifica que la IRQ es por llegada de nuevo dato por RX */
       if ((kLPUART_RxDataRegFullFlag) & intStatus) {
 
-      dato_lpuart0 = LPUART_ReadByte(LPUART0);
+      dato_lpuart0[dato_lpuart0_index] = LPUART_ReadByte(LPUART0);
+      dato_lpuart0_index++;
+      if(dato_lpuart0_index>LPUART0_BUFFER_SIZE_MAX){
+    	  dato_lpuart0_index=0;
+      }
       flag_nuevo_dato_lpuart0=1;
 
       }
@@ -68,7 +72,13 @@
  * Public Source Code
  ******************************************************************************/
     uint8_t leer_dato(void){
-   	return(dato_lpuart0);
+    if (dato_lpuart0_index!=0){
+    	return(dato_lpuart0[dato_lpuart0_index-1]);
+    }
+    else{
+    	return(0x00);
+    }
+
    }
 
  uint8_t leer_bandera_nuevo_dato(void){
