@@ -39,6 +39,9 @@
 uint8_t leer_dato(void);
 uint8_t leer_bandera_nuevo_dato(void);
 void escribir_bandera_nuevo_dato(uint8_t nuevo_valor);
+void lpuart0_borrar_buffer (void);
+void retardo(uint16_t retardo_mensaje);
+uint8_t* lectura_buffer(void);
 
 /** @} */ // end of X group
 /** @} */ // end of X group

@@ -30,6 +30,7 @@
 #define BOARD_LED_GPIO_PIN1 BOARD_LED_RED_GPIO_PIN
 #define BOARD_LED_GPIO2     BOARD_LED_GREEN_GPIO
 #define BOARD_LED_GPIO_PIN2 BOARD_LED_GREEN_GPIO_PIN
+#define LPUART0_BUFFER_SIZE_MAX 50
 
 enum{
 	CMD_AT_ATI_Display_Product_Identification_Information=0,
@@ -37,6 +38,7 @@ enum{
 	CMD_AT_AT_GMM_Request_TA_Model_Identification,
 	CMD_AT_AT_GMR_Request_TA_Revision_Identification_of_Sofware_Release,
 	CMD_AT_AT_CGMI_Request_Manofacturer_Identification,
+	Error,
 };
 
 typedef struct _iot_nodo_data{
@@ -68,6 +70,15 @@ enum{
 	FSM_ESTADO_ESPERA_NUEVO_DATO_LPUART0,
 	FSM_ESTADO_ANALIZANDO_NUEVO_DATO_LPUART0,
 	FSM_ESTADO_ENVIAR_COMANDO_ATI,
+	FSM_ESTADO_ENVIAR_COMANDO_AT_GMI,
+	FSM_ESTADO_ENVIAR_COMANDO_AT_GMM,
+	FSM_ESTADO_ENVIAR_COMANDO_AT_GMR,
+	FSM_ESTADO_ENVIAR_COMANDO_AT_CGMI,
+	FSM_ESTADO_ANALIZAR_COMANDO_ATI,
+	FSM_ESTADO_ANALIZAR_COMANDO_AT_GMI,
+	FSM_ESTADO_ANALIZAR_COMANDO_AT_GMM,
+	FSM_ESTADO_ANALIZAR_COMANDO_AT_GMR,
+	FSM_ESTADO_ANALIZAR_COMANDO_AT_CGMI,
 	FSM_ESTADO_STAR_ADC,
 	FMS_ESTADO_ESPERAR_TIEMPO_RESULTADO,
 	FSM_ESTADO_CAPTURA_RASULTADO_ADC,
@@ -90,20 +101,54 @@ enum{
  * Local vars
  *****************************************************************************************/
     const char* cmd_at[5]={
-    		"ATI\r\n",
-			"AT+GMI\r\n",
-			"AT+GMM\r\n",
-			"AT+GMR\r\n",
-			"AT+CGMI\r\n",
+    		"ATI\r\n", 			//M
+			"AT+GMI\r\n",		//Q
+			"AT+GMM\r\n",		//W
+			"AT+GMR\r\n",		//E
+			"AT+CGMI\r\n",		//A
     };
+
+    const char* respuestas_cmd_AT[]={
+    		"EC25EFAR02A09M4G",				//ATI
+			"OK",															//AT+GMI
+			"EC2x",															//AT+GMM
+			"EC25EFAR02A09",												//AT+GMR
+			"READY",														//AT+CGMI
+			"ERROR",														//ERROR
+    };
+
 
  iot_nodo_data_t datos_locales;
  sigfox__data_upllink_MAC_frame_t sigfox_frame;
  uint8_t fst_estado_actual=FSM_ESTADO_INICIO;
+ uint8_t *data;
+ char respuesta_mensaje[LPUART0_BUFFER_SIZE_MAX];
+ 
 
 /******************************************************************************************
  * Private Source Code
  *****************************************************************************************/
+void lectura_respuesta_mensaje(uint8_t *respuesta, char *suceso_mensaje, char *error_msg) {
+	for (uint8_t i = 1; i < LPUART0_BUFFER_SIZE_MAX; i++) {
+		respuesta_mensaje[i - 1] = *(respuesta + i);
+	}
+
+	if (strstr(respuesta_mensaje, suceso_mensaje)) {
+		PRINTF("Respuesta: OK");
+	} else if (strstr(respuesta_mensaje, error_msg)) {
+		PRINTF("Error");
+	} else {
+		PRINTF("No especificado");
+	}
+	lpuart0_borrar_buffer();
+	escribir_bandera_nuevo_dato(0);
+
+	for (uint8_t i = 0; i < LPUART0_BUFFER_SIZE_MAX; i++) {
+		respuesta_mensaje[i] = 0;
+	}
+}						
+						
+						
 void ec25_print_data_row(uint8_t *data_ptr, uint32_t data_size){
 	for(uint32_t i=0; i < data_size; i++){
 		PRINTF("%c", *(data_ptr + i));
@@ -161,7 +206,7 @@ int main(void) {
 		case FSM_ESTADO_ANALIZANDO_NUEVO_DATO_LPUART0:
 			switch(leer_dato()){
 			case 'l':
-				fst_estado_actual=FSM_ESTADO_STAR_ADC;
+					fst_estado_actual=FSM_ESTADO_STAR_ADC;
 				break;
 			case 'R':
 				fst_estado_actual=FSM_ESTADO_ENCENDIDO_LED_ROJO;
@@ -178,6 +223,22 @@ int main(void) {
 			case 'M':
 				fst_estado_actual=FSM_ESTADO_ENVIAR_COMANDO_ATI;
 				break;
+			case 'Q':
+				fst_estado_actual=FSM_ESTADO_ENVIAR_COMANDO_AT_GMI;
+				break;
+			case 'W':
+				fst_estado_actual=FSM_ESTADO_ENVIAR_COMANDO_AT_GMM;
+				break;
+			case 'E':
+				fst_estado_actual=FSM_ESTADO_ENVIAR_COMANDO_AT_GMR;
+				break;
+			case 'A':
+				fst_estado_actual=FSM_ESTADO_ENVIAR_COMANDO_AT_CGMI;
+				break;
+			case 'b':
+				lpuart0_borrar_buffer();
+				PRINTF("El buffer a sido borrado");
+				break;
 			default://estado ilegal
 				fst_estado_actual=FSM_ESTADO_INICIO;
 				break;
@@ -187,8 +248,85 @@ int main(void) {
 		/************************************************************************************/
 		case FSM_ESTADO_ENVIAR_COMANDO_ATI:
 			PRINTF("%s",cmd_at[CMD_AT_ATI_Display_Product_Identification_Information]);
-			fst_estado_actual=FSM_ESTADO_INICIO;
+			fst_estado_actual=FSM_ESTADO_ANALIZAR_COMANDO_ATI;
 			break;
+		/************************************************************************************/
+		/************************************************************************************/
+		case FSM_ESTADO_ANALIZAR_COMANDO_ATI:
+			if(leer_bandera_nuevo_dato ()!=0){
+				data=lectura_buffer();
+				lectura_respuesta_mensaje(data,respuestas_cmd_AT[CMD_AT_ATI_Display_Product_Identification_Information],respuestas_cmd_AT[Error]);
+				fst_estado_actual=FSM_ESTADO_INICIO;
+			}
+
+			break;
+		/************************************************************************************/
+		case FSM_ESTADO_ENVIAR_COMANDO_AT_GMI:
+			PRINTF("%s",cmd_at[CMD_AT_AT_GMI_Request_Manofacturer_Identification]);
+			fst_estado_actual=FSM_ESTADO_ANALIZAR_COMANDO_AT_GMI;
+			break;
+
+		/************************************************************************************/
+		/************************************************************************************/
+		case FSM_ESTADO_ANALIZAR_COMANDO_AT_GMI:
+			if(leer_bandera_nuevo_dato ()!=0){
+				data=lectura_buffer();
+				lectura_respuesta_mensaje(data,respuestas_cmd_AT[CMD_AT_AT_GMI_Request_Manofacturer_Identification],respuestas_cmd_AT[Error]);
+				fst_estado_actual=FSM_ESTADO_INICIO;
+			}
+
+			break;
+		/************************************************************************************/
+		/************************************************************************************/
+		case FSM_ESTADO_ENVIAR_COMANDO_AT_GMM:
+			PRINTF("%s",cmd_at[CMD_AT_AT_GMM_Request_TA_Model_Identification]);
+			fst_estado_actual=FSM_ESTADO_ANALIZAR_COMANDO_AT_GMM;
+			break;
+
+		/************************************************************************************/
+		/************************************************************************************/
+		case FSM_ESTADO_ANALIZAR_COMANDO_AT_GMM:
+			if(leer_bandera_nuevo_dato ()!=0){
+				data=lectura_buffer();
+				lectura_respuesta_mensaje(data,respuestas_cmd_AT[CMD_AT_AT_GMM_Request_TA_Model_Identification],respuestas_cmd_AT[Error]);
+				fst_estado_actual=FSM_ESTADO_INICIO;
+			}
+
+			break;
+		/************************************************************************************/
+		/************************************************************************************/
+		case FSM_ESTADO_ENVIAR_COMANDO_AT_GMR:
+			PRINTF("%s",cmd_at[CMD_AT_AT_GMR_Request_TA_Revision_Identification_of_Sofware_Release]);
+			fst_estado_actual=FSM_ESTADO_ANALIZAR_COMANDO_AT_GMR;
+			break;
+
+		/************************************************************************************/
+		case FSM_ESTADO_ANALIZAR_COMANDO_AT_GMR:
+			if(leer_bandera_nuevo_dato ()!=0){
+				data=lectura_buffer();
+				lectura_respuesta_mensaje(data,respuestas_cmd_AT[CMD_AT_AT_GMR_Request_TA_Revision_Identification_of_Sofware_Release],respuestas_cmd_AT[Error]);
+				fst_estado_actual=FSM_ESTADO_INICIO;
+			}
+
+			break;
+		/************************************************************************************/
+		/************************************************************************************/
+		case FSM_ESTADO_ENVIAR_COMANDO_AT_CGMI:
+			PRINTF("%s",cmd_at[CMD_AT_AT_CGMI_Request_Manofacturer_Identification]);
+			fst_estado_actual=FSM_ESTADO_ANALIZAR_COMANDO_AT_CGMI;
+			break;
+
+		/************************************************************************************/
+		/************************************************************************************/
+		case FSM_ESTADO_ANALIZAR_COMANDO_AT_CGMI:
+			if(leer_bandera_nuevo_dato ()!=0){
+				data=lectura_buffer();
+				lectura_respuesta_mensaje(data,respuestas_cmd_AT[CMD_AT_AT_CGMI_Request_Manofacturer_Identification],respuestas_cmd_AT[Error]);
+				fst_estado_actual=FSM_ESTADO_INICIO;
+			}
+
+			break;
+		/************************************************************************************/
 		/************************************************************************************/
 		case FSM_ESTADO_STAR_ADC:
 			/* Genera Señal de STAR para tomar dato ADC*/

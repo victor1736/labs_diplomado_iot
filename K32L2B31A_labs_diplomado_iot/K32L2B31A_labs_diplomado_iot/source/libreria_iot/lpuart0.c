@@ -16,11 +16,12 @@
 #include "pin_mux.h"
 #include "clock_config.h"
 #include "K32L2B31A.h"
+#include "fsl_lpuart.h"
 
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-#define LPUART0_BUFFER_SIZE_MAX 100
+#define LPUART0_BUFFER_SIZE_MAX 50
 
 /*******************************************************************************
  * Private Prototypes
@@ -36,8 +37,9 @@
  * Local vars
  ******************************************************************************/
     static uint8_t dato_lpuart0[LPUART0_BUFFER_SIZE_MAX];
-    static uint8_t flag_nuevo_dato_lpuart0=0;
-    static uint8_t dato_lpuart0_index=0;
+    static uint8_t flag_nuevo_dato_lpuart0 = 0;
+    static uint8_t dato_lpuart0_index = 0;
+    static uint16_t control_retardo = 0;
 /*******************************************************************************
  * Private Source Code
  ******************************************************************************/
@@ -74,16 +76,34 @@
     uint8_t leer_dato(void){
     if (dato_lpuart0_index!=0){
     	return(dato_lpuart0[dato_lpuart0_index-1]);
-    }
-    else{
+    }else{
     	return(0x00);
     }
-
    }
+
+uint8_t* lectura_buffer(void){
+    retardo(10000);
+    return dato_lpuart0;
+   }
+
 
  uint8_t leer_bandera_nuevo_dato(void){
 	return(flag_nuevo_dato_lpuart0);
 }
+
  void escribir_bandera_nuevo_dato(uint8_t nuevo_valor){
 	flag_nuevo_dato_lpuart0 = nuevo_valor;
 }
+ void lpuart0_borrar_buffer (void){
+	 for(uint8_t i; i<LPUART0_BUFFER_SIZE_MAX; i++){
+		 dato_lpuart0[i]=0x00;
+	 }
+	 dato_lpuart0_index=0;
+ }
+ void retardo(uint16_t retardo_mensaje){
+	 retardo_mensaje = retardo_mensaje ? retardo_mensaje: 10000;
+	 while (control_retardo<retardo_mensaje){
+		 control_retardo++;
+	 }
+	 control_retardo=0;
+ }
