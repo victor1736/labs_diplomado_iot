@@ -1,16 +1,17 @@
-/*! @file : sensor_luz.h
+/*! @file : botones.h
  * @author  Victor Alfonso Fernandez Hoyos
  * @version 1.0.0
- * @date    19/11/2022
- * @brief   Driver para 
+ * @date    09/10/2022
+ * @brief   Driver para
  * @details
  *
  */
-#ifndef LIBRERIA_IOT_SENSOR_LUZ_H_
-#define LIBRERIA_IOT_SENSOR_LUZ_H_
+#ifndef PERIFERICOS_BOTONES_H_
+#define PERIFERICOS_BOTONES_H_
 /*******************************************************************************
  * Includes
  ******************************************************************************/
+#include <hal_gpio.h>
 #include "peripherals.h"
 
 /*!
@@ -18,13 +19,14 @@
  * @{
  */
 /*!
- * @addtogroup LIGHT
+ * @addtogroup BUTTONS
  * @{
  */
 /*******************************************************************************
  * Public Definitions
  ******************************************************************************/
-
+#define BOTON1_PIN	KPTC3
+#define BOTON2_PIN	KPTA4
 /*******************************************************************************
  * External vars
  ******************************************************************************/
@@ -36,11 +38,10 @@
 /*******************************************************************************
  * Public Prototypes
  ******************************************************************************/
-uint32_t getLightADC(void);
+bool leerBoton1(void);
+bool leerBoton2(void);
 
-/** @} */ // end of LIGHT group
-/** @} */ // end of PERIPHERALS group
+/** @} */ // end of X group
+/** @} */ // end of X group
 
-
-
-#endif /* LIBRERIA_IOT_SENSOR_LUZ_H_ */
+#endif /* PERIFERICOS_BOTONES_H_ */

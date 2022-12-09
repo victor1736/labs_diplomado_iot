@@ -330,7 +330,7 @@ int main(void) {
 		/************************************************************************************/
 		case FSM_ESTADO_STAR_ADC:
 			/* Genera Señal de STAR para tomar dato ADC*/
-			sensor_luz();				//No a terminado de realizar la operacion
+			getLightADC();				//No a terminado de realizar la operacion
 			fst_estado_actual=FSM_ESTADO_CAPTURA_RASULTADO_ADC;
 
 			break;
@@ -341,7 +341,7 @@ int main(void) {
 		/************************************************************************************/
 		case FSM_ESTADO_CAPTURA_RASULTADO_ADC:
 	    	//Datos referente al sensor de luz y calculos correspondientes
-    		datos_locales.Data_sensor_luz_adc=sensor_luz();
+    		datos_locales.Data_sensor_luz_adc=getLightADC();
             datos_locales.Data_sensor_luz_voltaje=(datos_locales.Data_sensor_luz_adc*3.3)/4096;
             datos_locales.Data_sensor_luz_corriente=((3.3-datos_locales.Data_sensor_luz_voltaje)/10000)*1000000;
             datos_locales.Data_sensor_luz_lux=3.0303*datos_locales.Data_sensor_luz_corriente;

@@ -11,11 +11,8 @@
 /*******************************************************************************
  * Includes
  ******************************************************************************/
-#include "fsl_common.h"
-#include "fsl_gpio.h"
-#include "fsl_port.h"
-#include "fsl_pit.h"
-#include "fsl_smc.h"
+#include <hal_gpio.h>
+#include "peripherals.h"
 
 /*!
  * @addtogroup X
@@ -28,7 +25,8 @@
 /*******************************************************************************
  * Public Definitions
  ******************************************************************************/
-
+#define LED_VERDE_PIN	KPTD5
+#define LED_ROJO_PIN	KPTE31
 /*******************************************************************************
  * External vars
  ******************************************************************************/
@@ -40,8 +38,29 @@
 /*******************************************************************************
  * Public Prototypes
  ******************************************************************************/
-void encender_led_rojo(void);
-void apagar_led_rojo(void);
+static inline void encenderLedRojo(void) {
+	gpioPutValue(LED_ROJO_PIN, 0);
+}
+
+static inline void apagarLedRojo(void) {
+	gpioPutValue(LED_ROJO_PIN, 1);
+}
+
+static inline void toggleLedRojo(void){
+	gpioPutToggle(LED_ROJO_PIN);
+}
+
+static inline void encenderLedVerde(void) {
+	gpioPutValue(LED_VERDE_PIN, 0);
+}
+
+static inline void apagarLedVerde(void) {
+	gpioPutValue(LED_VERDE_PIN, 1);
+}
+
+static inline void toggleLedVerde(void){
+	gpioPutToggle(LED_VERDE_PIN);
+}
 /** @} */ // end of X group
 /** @} */ // end of X group
 
