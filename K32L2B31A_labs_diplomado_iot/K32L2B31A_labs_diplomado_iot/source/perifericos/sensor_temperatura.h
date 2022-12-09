@@ -1,53 +1,50 @@
-/*! @file : EC200T.h
+/*
+ * sensor_temperatura.h
+ *
+ *  Created on: 9/12/2022
+ *      Author: victo
+ */
+
+
+
+
+
+
+/*! @file : sensor_temperature.c
  * @author  Victor Alfonso Fernandez Hoyos
  * @version 1.0.0
  * @date    09/12/2022
- * @brief   Driver para modem EC200T
+ * @brief   Driver para lectura de sensor de temperatura interna del microcontrolador
  * @details
  *
 */
-#ifndef PERIFERICOS_EC200T_H_
-#define PERIFERICOS_EC200T_H_
+#ifndef PERIFERICOS_SENSOR_TEMPERATURA_H_
+#define PERIFERICOS_SENSOR_TEMPERATURA_H_
 /*******************************************************************************
  * Includes
  ******************************************************************************/
-#include "stdio.h"
-#include "lpuart0.h"
+#include "peripherals.h"
 
 /*!
- * @addtogroup PPH
+ * @addtogroup PERIPHERAL
  * @{
  */
 /*!
- * @addtogroup EC25AU
+ * @addtogroup TEMPERATURE
  * @{
  */
 /*******************************************************************************
  * Public Definitions
  ******************************************************************************/
-enum _ec200t_lista_comandos_at {
-	kAT = 0,
-	kATI,
-	kAT_CPIN,
-	kAT_CREG,
-	kAT_CMGF_1,
-	kAT_CMGS,
-	kAT_TEXT_MSG_END,
-};
+#define MAX_ADC			(float)65535
+#define VDD_MAX			(float)(3.3)
+#define VTEMP25			(float)(0.716)
 
-enum _fsm_ec200t_state{
-	kFSM_INICIO=0,
-	kFSM_ENVIANDO_AT,
-	kFSM_ENVIANDO_ATI,
-	kFSM_ENVIANDO_CPIN,
-	kFSM_ENVIANDO_CREG,
-	kFSM_ENVIANDO_CMGF,
-	kFSM_ENVIANDO_CMGS,
-	kFSM_ENVIANDO_MENSAJE_TXT,
-	kFSM_ESPERANDO_RESPUESTA,
-	kFSM_RESULTADO_ERROR,
-	kFSM_RESULTADO_EXITOSO
-};
+
+#define ADC_VTEMP25		14219//(VTEMP25 * MAX_ADC)/(VDD_MAX)
+#define ADC_VSLOPE		32//(float)(VTEMP25 * MAX_ADC)/(VDD_MAX)
+
+
 /*******************************************************************************
  * External vars
  ******************************************************************************/
@@ -59,11 +56,10 @@ enum _fsm_ec200t_state{
 /*******************************************************************************
  * Public Prototypes
  ******************************************************************************/
-status_t ec200tInicializacion(void);
-status_t ec200tEnviarMensajeDeTexto(uint8_t *mensaje, uint8_t size_mensaje );
-uint8_t  ec200tPolling(void);
 
-/** @} */ // end of X group
-/** @} */ // end of X group
+ float getTemperatureValue(void);
 
-#endif /* PERIFERICOS_EC200T_H_ */
+/** @} */ // end of TEMPERATURE group
+/** @} */ // end of PERIPHERAL group
+
+#endif /* PERIFERICOS_SENSOR_TEMPERATURA_H_ */
