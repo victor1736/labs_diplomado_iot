@@ -1,32 +1,29 @@
-/*! @file : lpuart0.h
+/*! @file : lptimer_0.h
  * @author  Victor Alfonso Fernandez Hoyos
  * @version 1.0.0
- * @date    18/11/2022
- * @brief   Driver para 
+ * @date    09/12/2022
+ * @brief   Driver para control de interrupción por timer 0
  * @details
  *
  */
-#ifndef LIBRERIA_IOT_LPUART0_H_
-#define LIBRERIA_IOT_LPUART0_H_
+#ifndef LIBRERIA_IOT_LPTIMER_0_H_
+#define LIBRERIA_IOT_LPTIMER_0_H_
 /*******************************************************************************
  * Includes
  ******************************************************************************/
 #include "peripherals.h"
-#include "fsl_lpuart.h"
 
 /*!
  * @addtogroup IRQ
  * @{
  */
 /*!
- * @addtogroup LPUART0
+ * @addtogroup LPTMR0
  * @{
  */
 /*******************************************************************************
  * Public Definitions
  ******************************************************************************/
-/*! @brief Tamaño de buffer circular para recibir datos por UART (Unit: Byte). */
-#define LONGITUD_BUFFER_CIRCULAR 	100
 
 /*******************************************************************************
  * External vars
@@ -35,31 +32,11 @@
 /*******************************************************************************
  * Public vars
  ******************************************************************************/
-
+extern volatile uint32_t lptmr0_ticks;
 /*******************************************************************************
  * Public Prototypes
  ******************************************************************************/
-/*--------------------------------------------*/
-/*!
- * @brief Calcula el numero de datos nuevos que hay en el buffer circular
- *
- * @return	numero de bytes que estan pendientes por ser procesados
- * @endcode
- */
-uint16_t lpUart0CuantosDatosHayEnBuffer(void);
-/*--------------------------------------------*/
-/*!
- * @brief Obtiene 1 byte desde buffer circular
- *
- * @param nuevo_byte	apuntador de memoria donde almacenar nuevo byte
- * @return	estado de la ejecución
- * @code
- * 		kStatus_Success
- * 		kStatus_Fail
- * @endcode
- */
-status_t lpUart0LeerByteDesdeBuffer(uint8_t *nuevo_byte);
-/** @} */ // end of LPUART0 group
-/** @} */ // end of IRQ group
 
-#endif /* LIBRERIA_IOT_LPUART0_H_ */
+/** @} */ // end of IRQ group
+/** @} */ // end of LPTMR0 group
+#endif /* LIBRERIA_IOT_LPTIMER_0_H_ */

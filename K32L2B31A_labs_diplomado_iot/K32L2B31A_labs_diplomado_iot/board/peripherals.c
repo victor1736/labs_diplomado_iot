@@ -70,6 +70,7 @@ instance:
   - nvic:
     - interrupt_table:
       - 0: []
+      - 1: []
     - interrupts: []
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -236,6 +237,61 @@ static void LPUART0_init(void) {
 }
 
 /***********************************************************************************************************************
+ * LPTMR0 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'LPTMR0'
+- type: 'lptmr'
+- mode: 'LPTMR_GENERAL'
+- custom_name_enabled: 'false'
+- type_id: 'lptmr_48552e76e8733b28a9c768b6d8d4fefa'
+- functional_group: 'BOARD_InitPeripherals'
+- peripheral: 'LPTMR0'
+- config_sets:
+  - fsl_lptmr:
+    - lptmr_config:
+      - timerMode: 'kLPTMR_TimerModeTimeCounter'
+      - pinSelect: 'ALT.0'
+      - pinPolarity: 'kLPTMR_PinPolarityActiveHigh'
+      - enableFreeRunning: 'false'
+      - bypassPrescaler: 'true'
+      - prescalerClockSource: 'kLPTMR_PrescalerClock_1'
+      - clockSource: 'BOARD_BootClockRUN'
+      - value: 'kLPTMR_Prescale_Glitch_0'
+      - timerPeriod: '1ms'
+    - enableInterrupt: 'true'
+    - interrupt:
+      - IRQn: 'LPTMR0_IRQn'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '0'
+      - enable_custom_name: 'false'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+const lptmr_config_t LPTMR0_config = {
+  .timerMode = kLPTMR_TimerModeTimeCounter,
+  .pinSelect = kLPTMR_PinSelectInput_0,
+  .pinPolarity = kLPTMR_PinPolarityActiveHigh,
+  .enableFreeRunning = false,
+  .bypassPrescaler = true,
+  .prescalerClockSource = kLPTMR_PrescalerClock_1,
+  .value = kLPTMR_Prescale_Glitch_0
+};
+
+static void LPTMR0_init(void) {
+  /* Initialize the LPTMR */
+  LPTMR_Init(LPTMR0_PERIPHERAL, &LPTMR0_config);
+  /* Set LPTMR period */
+  LPTMR_SetTimerPeriod(LPTMR0_PERIPHERAL, LPTMR0_TICKS);
+  /* Configure timer interrupt */
+  LPTMR_EnableInterrupts(LPTMR0_PERIPHERAL, kLPTMR_TimerInterruptEnable);
+  /* Enable interrupt LPTMR0_IRQn request in the NVIC. */
+  EnableIRQ(LPTMR0_IRQN);
+}
+
+/***********************************************************************************************************************
  * Initialization functions
  **********************************************************************************************************************/
 void BOARD_InitPeripherals(void)
@@ -243,6 +299,7 @@ void BOARD_InitPeripherals(void)
   /* Initialize components */
   ADC0_init();
   LPUART0_init();
+  LPTMR0_init();
 }
 
 /***********************************************************************************************************************

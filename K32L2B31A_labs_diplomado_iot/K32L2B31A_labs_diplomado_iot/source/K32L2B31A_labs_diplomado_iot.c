@@ -1,411 +1,200 @@
-/*
- * @file   	 	:K32L2B31A_labs_diplomado_iot.c
- * @author 		:Victor Alfonso Fernandez Hoyos
- * @version		:0.0.000
- * @date		:08/11/2022
- * @brief   	:Funcion principal main
+/*! @file : K32L2B31A_Project.c
+ * @author  Ernesto Andres Rincon Cruz
+ * @version 0.0.000
+ * @date    23/08/2021
+ * @brief   Funcion principal main
  * @details
- * 				v0.0.000  	Proyecto base creado usando MCUXpresso
+ *			v0.0.000	Proyecto base creado usando MCUXpresso
+ *
+ *
  */
-
-/******************************************************************************************
- * Include
- *****************************************************************************************/
+/*******************************************************************************
+ * Includes
+ ******************************************************************************/
 #include <stdio.h>
 #include "board.h"
 #include "peripherals.h"
 #include "pin_mux.h"
 #include "clock_config.h"
 #include "K32L2B31A.h"
-
 #include "fsl_debug_console.h"
-#include "fsl_adc16.h"
+#include <limits.h>
+#include <float.h>
+
+#include "hal_i2c_1.h"
+
+#include <leds.h>
+#include <sensor_luz.h>
+#include "botones.h"
+#include "sensor_temperatura.h"
+#include "sensor_analogico.h"
+#include "EC200T.h"
+
+#include "lptimer_0.h"
 #include "lpuart0.h"
-#include "leds.h"
-#include "sensor_luz.h"
-/******************************************************************************************
+/*******************************************************************************
  * Definitions
- *****************************************************************************************/
-#define BOARD_LED_GPIO1     BOARD_LED_RED_GPIO
-#define BOARD_LED_GPIO_PIN1 BOARD_LED_RED_GPIO_PIN
-#define BOARD_LED_GPIO2     BOARD_LED_GREEN_GPIO
-#define BOARD_LED_GPIO_PIN2 BOARD_LED_GREEN_GPIO_PIN
-#define LPUART0_BUFFER_SIZE_MAX 50
+ ******************************************************************************/
+#define HABILITAR_SENSOR_BME280		0
 
-enum{
-	CMD_AT_ATI_Display_Product_Identification_Information=0,
-	CMD_AT_AT_GMI_Request_Manofacturer_Identification,
-	CMD_AT_AT_GMM_Request_TA_Model_Identification,
-	CMD_AT_AT_GMR_Request_TA_Revision_Identification_of_Sofware_Release,
-	CMD_AT_AT_CGMI_Request_Manofacturer_Identification,
-	Error,
-};
 
-typedef struct _iot_nodo_data{
-	uint16_t Data_sensor_luz_adc;				//2 bytes
-	uint16_t Data_sensor_luz_lux;				//2 bytes
-	//--------------------------------------
-	uint8_t Data_sensor_luz_voltaje;			//1 bytes
-	uint8_t Data_sensor_luz_corriente;			//1 bytes
-	uint16_t Data_sensor_luz_humedad;			//2 bytes
-	//----------------------------------------
-	uint16_t Data_sensor_presion_atmosferica;	//2 bytes
-	uint8_t Data_sensor_luz_temperatura;		//1 bytes
-	uint8_t Reservado;							//1 bytes
+#define HABILITAR_TLPTMR0			1
+#define HABILITAR_I2C1				1
 
-}iot_nodo_data_t;
+/*******************************************************************************
+ * Private Prototypes
+ ******************************************************************************/
 
-typedef struct _sigfox__data_upllink_MAC_frame{
-	uint32_t Preamble;				//4 bites
-	uint16_t Frame_sync;			//2 bites
-	uint32_t End_device_ID;			//4 bites
-	uint8_t Payload[12];			//12 bits
-	uint16_t Authentification;
-	uint16_t FCS;					//2 bits
-
-}sigfox__data_upllink_MAC_frame_t;
-
-enum{
-	FSM_ESTADO_INICIO=0,
-	FSM_ESTADO_ESPERA_NUEVO_DATO_LPUART0,
-	FSM_ESTADO_ANALIZANDO_NUEVO_DATO_LPUART0,
-	FSM_ESTADO_ENVIAR_COMANDO_ATI,
-	FSM_ESTADO_ENVIAR_COMANDO_AT_GMI,
-	FSM_ESTADO_ENVIAR_COMANDO_AT_GMM,
-	FSM_ESTADO_ENVIAR_COMANDO_AT_GMR,
-	FSM_ESTADO_ENVIAR_COMANDO_AT_CGMI,
-	FSM_ESTADO_ANALIZAR_COMANDO_ATI,
-	FSM_ESTADO_ANALIZAR_COMANDO_AT_GMI,
-	FSM_ESTADO_ANALIZAR_COMANDO_AT_GMM,
-	FSM_ESTADO_ANALIZAR_COMANDO_AT_GMR,
-	FSM_ESTADO_ANALIZAR_COMANDO_AT_CGMI,
-	FSM_ESTADO_STAR_ADC,
-	FMS_ESTADO_ESPERAR_TIEMPO_RESULTADO,
-	FSM_ESTADO_CAPTURA_RASULTADO_ADC,
-	FSM_ESTADO_CAPTURA_IMPRIME_RESULTADO_ADC,
-	FSM_ESTADO_ENCENDIDO_LED_ROJO,
-	FSM_ESTADO_APAGADO_LED_ROJO,
-	FSM_ESTADO_ENCENDIDO_LED_VERDE,
-	FSM_ESTADO_APAGADO_LED_VERDE,
-};
-
-/******************************************************************************************
- * Private prototypes
- *****************************************************************************************/
-
-/******************************************************************************************
+/*******************************************************************************
  * External vars
- *****************************************************************************************/
+ ******************************************************************************/
 
-/******************************************************************************************
+/*******************************************************************************
  * Local vars
- *****************************************************************************************/
-    const char* cmd_at[5]={
-    		"ATI\r\n", 			//M
-			"AT+GMI\r\n",		//Q
-			"AT+GMM\r\n",		//W
-			"AT+GMR\r\n",		//E
-			"AT+CGMI\r\n",		//A
-    };
-
-    const char* respuestas_cmd_AT[]={
-    		"EC25EFAR02A09M4G",				//ATI
-			"OK",															//AT+GMI
-			"EC2x",															//AT+GMM
-			"EC25EFAR02A09",												//AT+GMR
-			"READY",														//AT+CGMI
-			"ERROR",														//ERROR
-    };
-
-
- iot_nodo_data_t datos_locales;
- sigfox__data_upllink_MAC_frame_t sigfox_frame;
- uint8_t fst_estado_actual=FSM_ESTADO_INICIO;
- uint8_t *data;
- char respuesta_mensaje[LPUART0_BUFFER_SIZE_MAX];
- 
-
-/******************************************************************************************
+ ******************************************************************************/
+char mensaje_text[]="mqtt_topi:temperatura";
+/*******************************************************************************
  * Private Source Code
- *****************************************************************************************/
-void lectura_respuesta_mensaje(uint8_t *respuesta, char *suceso_mensaje, char *error_msg) {
-	for (uint8_t i = 1; i < LPUART0_BUFFER_SIZE_MAX; i++) {
-		respuesta_mensaje[i - 1] = *(respuesta + i);
-	}
-
-	if (strstr(respuesta_mensaje, suceso_mensaje)) {
-		PRINTF("Respuesta: OK");
-	} else if (strstr(respuesta_mensaje, error_msg)) {
-		PRINTF("Error");
-	} else {
-		PRINTF("No especificado");
-	}
-	lpuart0_borrar_buffer();
-	escribir_bandera_nuevo_dato(0);
-
-	for (uint8_t i = 0; i < LPUART0_BUFFER_SIZE_MAX; i++) {
-		respuesta_mensaje[i] = 0;
-	}
-}						
-						
-						
-void ec25_print_data_row(uint8_t *data_ptr, uint32_t data_size){
-	for(uint32_t i=0; i < data_size; i++){
-		PRINTF("%c", *(data_ptr + i));
-	}
-}
-void ec25_print_data_ascii_hex(uint8_t *data_ptr, uint32_t data_size){
-	for(uint32_t i=0; i < data_size; i++){
-		PRINTF("%02x", *(data_ptr + i));
-	}
-}
-
+ ******************************************************************************/
 int main(void) {
+	/*Crea variables locales -------------------------------------*/
+	uint32_t adc_sensor_value;
+	uint32_t adc_light_value;
+	float temperature_value;
+	status_t status;
+	uint8_t nuevo_byte_uart;
 
-    /* Init board hardware. */
-    BOARD_InitBootPins();
-    BOARD_InitBootClocks();
-    BOARD_InitBootPeripherals();
-#ifndef BOARD_INIT_DEBUG_CONSOLE_PERIPHERAL
-    /* Init FSL debug console. */
-    BOARD_InitDebugConsole();
+#if HABILITAR_SENSOR_BME280
+	bme280_data_t bme280_datos;
+	uint8_t bme280_detectado=0;
+	uint8_t bme280_base_de_tiempo=0;
 #endif
 
 
-    PRINTF("Hola mundo\r\n");
-	//
-	//ec25_print_data_ascii_hex((uint8_t*)(&datos_locales),sizeof(datos_locales));
+	/* Finaliza la creación de variables locales-----------------*/
 
-	//memcpy(&sigfox_frame.Payload[0],(uint8_t*)(&datos_locales),sizeof(datos_locales));
-	//envio de datos de la base de datos
-	//ec25_print_data_row((uint8_t*)(&sigfox_frame),sizeof(sigfox_frame));
+    /* Inicialización del microcontrolador ----------------------*/
+    BOARD_InitBootPins();
+    BOARD_InitBootClocks();
+    BOARD_InitBootPeripherals();
+    /* Finaliza inicialización ----------------------------------*/
 
+#ifndef BOARD_INIT_DEBUG_CONSOLE_PERIPHERAL
+    /* Inicializa el puerto serial para enviar mensajes al MODEM/DOCKLIGHT*/
+    BOARD_InitDebugConsole();
+#endif
+
+#if HABILITAR_TLPTMR0
+    /* Activa LPTMR0 para que iniciar contador y posterior IRQ cada 1 segundo*/
+    printf("Inicializa LPTMR0:");
+    LPTMR_StartTimer(LPTMR0);
+    printf("OK\r\n");
+#endif
+
+#if HABILITAR_I2C1
+    /* Inicializa I2C1 para lectura de sensores SHT31 y BME280*/
+    //Solo avanza si es exitoso el proceso
+    printf("Inicializa I2C1:");
+    if(i2c1MasterInit(100000)!=kStatus_Success){	//100kbps
+    	printf("Error");
+    	return 0 ;
+    }
+    printf("OK\r\n");
+#endif
+
+
+
+#if HABILITAR_SENSOR_BME280
+    printf("Detectando BME280:");
+    //LLamado a funcion que identifica sensor BME280
+    if (bme280WhoAmI() == kStatus_Success){
+    	printf("OK\r\n");
+    	(void)bme280Init();	//inicializa sensor bme280
+    	bme280_detectado=1;	//activa bandera que indica (SI HAY BME280)
+    }
+#endif
+
+    /* Activa LPTMR0 para que iniciar contador y posterior IRQ cada 1 segundo*/
+    printf("Inicializa Modem EC200T\r\n");
+    ec200tInicializacion();
 
     while(1) {
-		switch (fst_estado_actual) {
-		/**********************************************************************************/
-		case FSM_ESTADO_INICIO:
-			/*Escribir condiciones iniciales para la ejecucion de toda la FSM*/
-	    	/*
-	    	 * Simulacion de  tx  por sigfox
-	    	 */
-	    	sigfox_frame.Preamble=0x1234;
-	    	sigfox_frame.End_device_ID=0x1234;
-	    	sigfox_frame.Frame_sync=0x2345;
-			fst_estado_actual=FSM_ESTADO_ESPERA_NUEVO_DATO_LPUART0;
-			break;
-		/************************************************************************************/
-		case FSM_ESTADO_ESPERA_NUEVO_DATO_LPUART0:
-			 if (leer_bandera_nuevo_dato ()!=0){
-	        	    escribir_bandera_nuevo_dato(0);
-	        	    fst_estado_actual=FSM_ESTADO_ANALIZANDO_NUEVO_DATO_LPUART0;
-			 }
+    	if(lptmr0_ticks>100){
+    		lptmr0_ticks=0;
+        	toggleLedRojo();
+        	toggleLedVerde();
 
-			break;
-		/************************************************************************************/
-		case FSM_ESTADO_ANALIZANDO_NUEVO_DATO_LPUART0:
-			switch(leer_dato()){
-			case 'l':
-					fst_estado_actual=FSM_ESTADO_STAR_ADC;
-				break;
-			case 'R':
-				fst_estado_actual=FSM_ESTADO_ENCENDIDO_LED_ROJO;
-				break;
-			case 'r':
-				fst_estado_actual=FSM_ESTADO_APAGADO_LED_ROJO;
-				break;
-    		case 'G':
-			fst_estado_actual=FSM_ESTADO_ENCENDIDO_LED_VERDE;
-				break;
-			case 'g':
-				fst_estado_actual=FSM_ESTADO_APAGADO_LED_VERDE;
-				break;
-			case 'M':
-				fst_estado_actual=FSM_ESTADO_ENVIAR_COMANDO_ATI;
-				break;
-			case 'Q':
-				fst_estado_actual=FSM_ESTADO_ENVIAR_COMANDO_AT_GMI;
-				break;
-			case 'W':
-				fst_estado_actual=FSM_ESTADO_ENVIAR_COMANDO_AT_GMM;
-				break;
-			case 'E':
-				fst_estado_actual=FSM_ESTADO_ENVIAR_COMANDO_AT_GMR;
-				break;
-			case 'A':
-				fst_estado_actual=FSM_ESTADO_ENVIAR_COMANDO_AT_CGMI;
-				break;
-			case 'b':
-				lpuart0_borrar_buffer();
-				PRINTF("El buffer a sido borrado");
-				break;
-			default://estado ilegal
-				fst_estado_actual=FSM_ESTADO_INICIO;
-				break;
-			}
-			break;
+        	ec200tPolling();	//Actualiza FSM de modem EC25
 
-		/************************************************************************************/
-		case FSM_ESTADO_ENVIAR_COMANDO_ATI:
-			PRINTF("%s",cmd_at[CMD_AT_ATI_Display_Product_Identification_Information]);
-			fst_estado_actual=FSM_ESTADO_ANALIZAR_COMANDO_ATI;
-			break;
-		/************************************************************************************/
-		/************************************************************************************/
-		case FSM_ESTADO_ANALIZAR_COMANDO_ATI:
-			if(leer_bandera_nuevo_dato ()!=0){
-				data=lectura_buffer();
-				lectura_respuesta_mensaje(data,respuestas_cmd_AT[CMD_AT_ATI_Display_Product_Identification_Information],respuestas_cmd_AT[Error]);
-				fst_estado_actual=FSM_ESTADO_INICIO;
-			}
+    		//Busca si llegaron nuevos datos desde modem mientras esperaba
+    		if (lpUart0CuantosDatosHayEnBuffer() > 0) {
+    			status = lpUart0LeerByteDesdeBuffer(&nuevo_byte_uart);
+    			if (status == kStatus_Success) {
+    				/* Imprime byte recibido por puerto LPUART0*/
+    				printf("Nuevo byte:%c - 0x%2x\r\n",nuevo_byte_uart,nuevo_byte_uart);
 
-			break;
-		/************************************************************************************/
-		case FSM_ESTADO_ENVIAR_COMANDO_AT_GMI:
-			PRINTF("%s",cmd_at[CMD_AT_AT_GMI_Request_Manofacturer_Identification]);
-			fst_estado_actual=FSM_ESTADO_ANALIZAR_COMANDO_AT_GMI;
-			break;
+    				/* Toma lectura del sensor de luz*/
+    				adc_light_value=getLightADC();
+    				printf("ADC Light: %d\r\n", adc_light_value);
 
-		/************************************************************************************/
-		/************************************************************************************/
-		case FSM_ESTADO_ANALIZAR_COMANDO_AT_GMI:
-			if(leer_bandera_nuevo_dato ()!=0){
-				data=lectura_buffer();
-				lectura_respuesta_mensaje(data,respuestas_cmd_AT[CMD_AT_AT_GMI_Request_Manofacturer_Identification],respuestas_cmd_AT[Error]);
-				fst_estado_actual=FSM_ESTADO_INICIO;
-			}
+    				/* Toma lectura de temperatura*/
+    				temperature_value=getTemperatureValue();
+    				printf("Temperature: %f\r\n", temperature_value);
 
-			break;
-		/************************************************************************************/
-		/************************************************************************************/
-		case FSM_ESTADO_ENVIAR_COMANDO_AT_GMM:
-			PRINTF("%s",cmd_at[CMD_AT_AT_GMM_Request_TA_Model_Identification]);
-			fst_estado_actual=FSM_ESTADO_ANALIZAR_COMANDO_AT_GMM;
-			break;
-
-		/************************************************************************************/
-		/************************************************************************************/
-		case FSM_ESTADO_ANALIZAR_COMANDO_AT_GMM:
-			if(leer_bandera_nuevo_dato ()!=0){
-				data=lectura_buffer();
-				lectura_respuesta_mensaje(data,respuestas_cmd_AT[CMD_AT_AT_GMM_Request_TA_Model_Identification],respuestas_cmd_AT[Error]);
-				fst_estado_actual=FSM_ESTADO_INICIO;
-			}
-
-			break;
-		/************************************************************************************/
-		/************************************************************************************/
-		case FSM_ESTADO_ENVIAR_COMANDO_AT_GMR:
-			PRINTF("%s",cmd_at[CMD_AT_AT_GMR_Request_TA_Revision_Identification_of_Sofware_Release]);
-			fst_estado_actual=FSM_ESTADO_ANALIZAR_COMANDO_AT_GMR;
-			break;
-
-		/************************************************************************************/
-		case FSM_ESTADO_ANALIZAR_COMANDO_AT_GMR:
-			if(leer_bandera_nuevo_dato ()!=0){
-				data=lectura_buffer();
-				lectura_respuesta_mensaje(data,respuestas_cmd_AT[CMD_AT_AT_GMR_Request_TA_Revision_Identification_of_Sofware_Release],respuestas_cmd_AT[Error]);
-				fst_estado_actual=FSM_ESTADO_INICIO;
-			}
-
-			break;
-		/************************************************************************************/
-		/************************************************************************************/
-		case FSM_ESTADO_ENVIAR_COMANDO_AT_CGMI:
-			PRINTF("%s",cmd_at[CMD_AT_AT_CGMI_Request_Manofacturer_Identification]);
-			fst_estado_actual=FSM_ESTADO_ANALIZAR_COMANDO_AT_CGMI;
-			break;
-
-		/************************************************************************************/
-		/************************************************************************************/
-		case FSM_ESTADO_ANALIZAR_COMANDO_AT_CGMI:
-			if(leer_bandera_nuevo_dato ()!=0){
-				data=lectura_buffer();
-				lectura_respuesta_mensaje(data,respuestas_cmd_AT[CMD_AT_AT_CGMI_Request_Manofacturer_Identification],respuestas_cmd_AT[Error]);
-				fst_estado_actual=FSM_ESTADO_INICIO;
-			}
-
-			break;
-		/************************************************************************************/
-		/************************************************************************************/
-		case FSM_ESTADO_STAR_ADC:
-			/* Genera Señal de STAR para tomar dato ADC*/
-			getLightADC();				//No a terminado de realizar la operacion
-			fst_estado_actual=FSM_ESTADO_CAPTURA_RASULTADO_ADC;
-
-			break;
-		/************************************************************************************/
-		case FMS_ESTADO_ESPERAR_TIEMPO_RESULTADO:
-			fst_estado_actual=FSM_ESTADO_CAPTURA_RASULTADO_ADC;
-			break;
-		/************************************************************************************/
-		case FSM_ESTADO_CAPTURA_RASULTADO_ADC:
-	    	//Datos referente al sensor de luz y calculos correspondientes
-    		datos_locales.Data_sensor_luz_adc=getLightADC();
-            datos_locales.Data_sensor_luz_voltaje=(datos_locales.Data_sensor_luz_adc*3.3)/4096;
-            datos_locales.Data_sensor_luz_corriente=((3.3-datos_locales.Data_sensor_luz_voltaje)/10000)*1000000;
-            datos_locales.Data_sensor_luz_lux=3.0303*datos_locales.Data_sensor_luz_corriente;
-			fst_estado_actual=FSM_ESTADO_CAPTURA_IMPRIME_RESULTADO_ADC;
-			break;
-		/************************************************************************************/
-		case FSM_ESTADO_CAPTURA_IMPRIME_RESULTADO_ADC:
-            //Salida del monitor serial
-        	PRINTF("dato lpuat0: %d \r\n",leer_dato());
-        	PRINTF("dato lpuat0: 0x%x \r\n",leer_dato());
-        	PRINTF("dato lpuat0: %c \r\n",leer_dato());
-            PRINTF("Data_sensor_luz_ADC: %d\r\n", datos_locales.Data_sensor_luz_adc );
-            PRINTF("Data_sensor_luz_voltaje: %d\r\n",datos_locales.Data_sensor_luz_voltaje);
-            PRINTF("Data_sensor_luz_corriente: %d\r\n",datos_locales.Data_sensor_luz_corriente);
-            PRINTF("Luz: %d\r\n",datos_locales.Data_sensor_luz_lux);
-			fst_estado_actual=FSM_ESTADO_INICIO;
-			break;
+    				/* Toma lectura de sensor análogico externo*/
+    				adc_sensor_value=getSensorADC();
+    				printf("ADC sensor: %d\r\n", adc_sensor_value);
 
 
-		/*************************************************************************************/
-		case FSM_ESTADO_ENCENDIDO_LED_ROJO:
-        	PRINTF("dato lpuat0: %d \r\n",leer_dato());
-        	PRINTF("dato lpuat0: 0x%x \r\n",leer_dato());
-        	PRINTF("dato lpuat0: %c \r\n",leer_dato());
-			GPIO_PortClear(BOARD_LED_RED_GPIO, 1U << BOARD_LED_RED_GPIO_PIN);
-			fst_estado_actual=FSM_ESTADO_INICIO;
-			break;
-		/*************************************************************************************/
-		/*************************************************************************************/
-		case FSM_ESTADO_APAGADO_LED_ROJO:
-        	PRINTF("dato lpuat0: %d \r\n",leer_dato());
-        	PRINTF("dato lpuat0: 0x%x \r\n",leer_dato());
-        	PRINTF("dato lpuat0: %c \r\n",leer_dato());
-			GPIO_PortSet(BOARD_LED_RED_GPIO, 1U << BOARD_LED_RED_GPIO_PIN);
-			fst_estado_actual=FSM_ESTADO_INICIO;
-			break;
-		/*************************************************************************************/
-		/*************************************************************************************/
-		case FSM_ESTADO_ENCENDIDO_LED_VERDE:
-        	PRINTF("dato lpuat0: %d \r\n",leer_dato());
-        	PRINTF("dato lpuat0: 0x%x \r\n",leer_dato());
-        	PRINTF("dato lpuat0: %c \r\n",leer_dato());
-			GPIO_PortClear(BOARD_LED_GREEN_GPIO, 1U << BOARD_LED_GREEN_GPIO_PIN);
-			fst_estado_actual=FSM_ESTADO_INICIO;
-			break;
-		/*************************************************************************************/
-		/*************************************************************************************/
-		case FSM_ESTADO_APAGADO_LED_VERDE:
-        	PRINTF("dato lpuat0: %d \r\n",leer_dato());
-        	PRINTF("dato lpuat0: 0x%x \r\n",leer_dato());
-        	PRINTF("dato lpuat0: %c \r\n",leer_dato());
-			GPIO_PortSet(BOARD_LED_GREEN_GPIO, 1U << BOARD_LED_GREEN_GPIO_PIN);
-			fst_estado_actual=FSM_ESTADO_INICIO;
-			break;
-		/*************************************************************************************/
-		/************************************************************************************/
-		default://estado ilegal
-			fst_estado_actual=FSM_ESTADO_INICIO;
-			break;
+#if HABILITAR_SENSOR_BME280
+					if(bme280_detectado==1){
+						bme280_base_de_tiempo++;	//incrementa base de tiempo para tomar dato bme280
+						if(bme280_base_de_tiempo>0){	//	>10 equivale aproximadamente a 2s
+							bme280_base_de_tiempo=0; //reinicia contador de tiempo
+							if(bme280ReadData(&bme280_datos)==kStatus_Success){	//toma lectura humedad, presion, temperatura
+								printf("BME280 ->");
+								printf("temperatura:0x%X ",bme280_datos.temperatura);	//imprime temperatura sin procesar
+								printf("humedad:0x%X ",bme280_datos.humedad);	//imprime humedad sin procesar
+								printf("presion:0x%X ",bme280_datos.presion);	//imprime presion sin procesar
+								printf("\r\n");	//Imprime cambio de linea
+							}
+						}
+					}
+#endif
 
-		}
+#if HABILITAR_SENSOR_SHT3X
+					if(sht3x_detectado==1){
+						sht3x_base_de_tiempo++; //incrementa base de tiempo para tomar dato sensor SHT3X
+						if(sht3x_base_de_tiempo>10){//	>10 equivale aproximadamente a 2s
+							sht3x_base_de_tiempo=0; //reinicia contador de tiempo
+							if (sht3xReadData(&sht3x_datos) == kStatus_Success) {//toma lectura humedad, temperatura
+								printf("SHT3X ->");
+								printf("temperatura:0x%X ",sht3x_datos.temperatura);	//imprime temperatura sin procesar
+								printf("CRC8_t:0x%X ",sht3x_datos.crc_temperatura);	//imprime CRC8 de temperatura
+								printf("humedad:0x%X ",sht3x_datos.humedad);	//imprime humedad sin procesar
+								printf("CRC8_h:0x%X ",sht3x_datos.crc_humedad);	//imprime CRC8 de temperatura
+								printf("\r\n");	//Imprime cambio de linea
+							}
+						}
+					}
+#endif
 
-		//__asm volatile ("nop");
+    	            printf("boton1:%d\r\n",leerBoton1());
+    	            printf("boton2:%d\r\n",leerBoton2());
+    	            printf("\r\n");
+
+
+    	            switch(nuevo_byte_uart){
+    	            	case 'm':
+    	            		ec200tEnviarMensajeDeTexto((uint8_t*)(&mensaje_text[0]),(uint8_t)(strlen(&mensaje_text[0])));
+    	            		break;
+    	            }
+    			}
+    		}
+
+
+    	}
     }
-
-return 0 ;
+    return 0 ;
 }
+

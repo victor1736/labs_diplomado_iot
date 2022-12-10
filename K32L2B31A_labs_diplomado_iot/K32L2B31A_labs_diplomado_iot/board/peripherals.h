@@ -13,6 +13,7 @@
 #include "fsl_adc16.h"
 #include "fsl_lpuart.h"
 #include "fsl_clock.h"
+#include "fsl_lptmr.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -44,6 +45,21 @@ extern "C" {
 #define LPUART0_SERIAL_RX_TX_IRQN LPUART0_IRQn
 /* LPUART0 interrupt handler identifier. */
 #define LPUART0_SERIAL_RX_TX_IRQHANDLER LPUART0_IRQHandler
+/* BOARD_InitPeripherals defines for LPTMR0 */
+/* Definition of peripheral ID */
+#define LPTMR0_PERIPHERAL LPTMR0
+/* Definition of the clock source frequency */
+#define LPTMR0_CLK_FREQ 1000UL
+/* Definition of the prescaled clock source frequency */
+#define LPTMR0_INPUT_FREQ 1000UL
+/* Definition of the timer period in us */
+#define LPTMR0_USEC_COUNT 1000UL
+/* Definition of the timer period in number of ticks */
+#define LPTMR0_TICKS 1UL
+/* LPTMR0 interrupt vector ID (number). */
+#define LPTMR0_IRQN LPTMR0_IRQn
+/* LPTMR0 interrupt handler identifier. */
+#define LPTMR0_IRQHANDLER LPTMR0_IRQHandler
 
 /***********************************************************************************************************************
  * Global variables
@@ -52,6 +68,7 @@ extern adc16_channel_config_t ADC0_channelsConfig[2];
 extern const adc16_config_t ADC0_config;
 extern const adc16_channel_mux_mode_t ADC0_muxMode;
 extern const lpuart_config_t LPUART0_config;
+extern const lptmr_config_t LPTMR0_config;
 
 /***********************************************************************************************************************
  * Initialization functions

@@ -470,7 +470,33 @@ BOARD_InitLEDsPins:
  * Description   : Configures pin routing and optionally pin electrical features.
  *
  * END ****************************************************************************************************************/
+void BOARD_InitLEDsPins(void)
+{
+    /* Port D Clock Gate Control: Clock enabled */
+    CLOCK_EnableClock(kCLOCK_PortD);
+    /* Port E Clock Gate Control: Clock enabled */
+    CLOCK_EnableClock(kCLOCK_PortE);
 
+    gpio_pin_config_t LED1_config = {
+        .pinDirection = kGPIO_DigitalOutput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PTD5 (pin 62)  */
+    GPIO_PinInit(BOARD_LED1_GPIO, BOARD_LED1_PIN, &LED1_config);
+
+    gpio_pin_config_t LED2_config = {
+        .pinDirection = kGPIO_DigitalOutput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PTE31 (pin 19)  */
+    GPIO_PinInit(BOARD_LED2_GPIO, BOARD_LED2_PIN, &LED2_config);
+
+    /* PORTD5 (pin 62) is configured as PTD5 */
+    PORT_SetPinMux(BOARD_LED1_PORT, BOARD_LED1_PIN, kPORT_MuxAsGpio);
+
+    /* PORTE31 (pin 19) is configured as PTE31 */
+    PORT_SetPinMux(BOARD_LED2_PORT, BOARD_LED2_PIN, kPORT_MuxAsGpio);
+}
 
 /* clang-format off */
 /*
@@ -806,30 +832,6 @@ BOARD_InitLEDS:
  * END ****************************************************************************************************************/
 void BOARD_InitLEDS(void)
 {
-	   /* Port D Clock Gate Control: Clock enabled */
-	    CLOCK_EnableClock(kCLOCK_PortD);
-	    /* Port E Clock Gate Control: Clock enabled */
-	    CLOCK_EnableClock(kCLOCK_PortE);
-
-	    gpio_pin_config_t LED1_config = {
-	        .pinDirection = kGPIO_DigitalOutput,
-	        .outputLogic = 0U
-	    };
-	    /* Initialize GPIO functionality on pin PTD5 (pin 62)  */
-	    GPIO_PinInit(BOARD_LED1_GPIO, BOARD_LED1_PIN, &LED1_config);
-
-	    gpio_pin_config_t LED2_config = {
-	        .pinDirection = kGPIO_DigitalOutput,
-	        .outputLogic = 0U
-	    };
-	    /* Initialize GPIO functionality on pin PTE31 (pin 19)  */
-	    GPIO_PinInit(BOARD_LED2_GPIO, BOARD_LED2_PIN, &LED2_config);
-
-	    /* PORTD5 (pin 62) is configured as PTD5 */
-	    PORT_SetPinMux(BOARD_LED1_PORT, BOARD_LED1_PIN, kPORT_MuxAsGpio);
-
-	    /* PORTE31 (pin 19) is configured as PTE31 */
-	    PORT_SetPinMux(BOARD_LED2_PORT, BOARD_LED2_PIN, kPORT_MuxAsGpio);
 }
 /***********************************************************************************************************************
  * EOF

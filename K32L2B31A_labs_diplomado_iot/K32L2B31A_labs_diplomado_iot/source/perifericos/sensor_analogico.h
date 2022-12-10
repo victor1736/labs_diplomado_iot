@@ -1,33 +1,30 @@
-/*! @file : lpuart0.h
+/*! @file : sensor_analogico.h
  * @author  Victor Alfonso Fernandez Hoyos
  * @version 1.0.0
- * @date    18/11/2022
- * @brief   Driver para 
+ * @date    09/12/2022
+ * @brief   Driver para cualquier sensor analogico
  * @details
  *
  */
-#ifndef LIBRERIA_IOT_LPUART0_H_
-#define LIBRERIA_IOT_LPUART0_H_
+#ifndef PERIFERICOS_SENSOR_ANALOGICO_H_
+#define PERIFERICOS_SENSOR_ANALOGICO_H_
 /*******************************************************************************
  * Includes
  ******************************************************************************/
 #include "peripherals.h"
-#include "fsl_lpuart.h"
 
 /*!
- * @addtogroup IRQ
+ * @addtogroup PERIPHERALS
  * @{
  */
 /*!
- * @addtogroup LPUART0
+ * @addtogroup SENSOR_ANA
  * @{
  */
 /*******************************************************************************
  * Public Definitions
  ******************************************************************************/
-/*! @brief Tamaño de buffer circular para recibir datos por UART (Unit: Byte). */
-#define LONGITUD_BUFFER_CIRCULAR 	100
-
+#define INDEX_SENSOR_ANA	3	//PTB0 ADC0_SE8
 /*******************************************************************************
  * External vars
  ******************************************************************************/
@@ -39,27 +36,9 @@
 /*******************************************************************************
  * Public Prototypes
  ******************************************************************************/
-/*--------------------------------------------*/
-/*!
- * @brief Calcula el numero de datos nuevos que hay en el buffer circular
- *
- * @return	numero de bytes que estan pendientes por ser procesados
- * @endcode
- */
-uint16_t lpUart0CuantosDatosHayEnBuffer(void);
-/*--------------------------------------------*/
-/*!
- * @brief Obtiene 1 byte desde buffer circular
- *
- * @param nuevo_byte	apuntador de memoria donde almacenar nuevo byte
- * @return	estado de la ejecución
- * @code
- * 		kStatus_Success
- * 		kStatus_Fail
- * @endcode
- */
-status_t lpUart0LeerByteDesdeBuffer(uint8_t *nuevo_byte);
-/** @} */ // end of LPUART0 group
-/** @} */ // end of IRQ group
+uint32_t getSensorADC(void);
 
-#endif /* LIBRERIA_IOT_LPUART0_H_ */
+/** @} */ // end of SENSOR_ANA group
+/** @} */ // end of PERIPHERALS group
+
+#endif /* PERIFERICOS_SENSOR_ANALOGICO_H_ */
