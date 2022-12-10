@@ -130,21 +130,6 @@ int main(void) {
     		if (lpUart0CuantosDatosHayEnBuffer() > 0) {
     			status = lpUart0LeerByteDesdeBuffer(&nuevo_byte_uart);
     			if (status == kStatus_Success) {
-    				/* Imprime byte recibido por puerto LPUART0*/
-    				printf("Nuevo byte:%c - 0x%2x\r\n",nuevo_byte_uart,nuevo_byte_uart);
-
-    				/* Toma lectura del sensor de luz*/
-    				adc_light_value=getLightADC();
-    				printf("ADC Light: %d\r\n", adc_light_value);
-
-    				/* Toma lectura de temperatura*/
-    				temperature_value=getTemperatureValue();
-    				printf("Temperature: %f\r\n", temperature_value);
-
-    				/* Toma lectura de sensor análogico externo*/
-    				adc_sensor_value=getSensorADC();
-    				printf("ADC sensor: %d\r\n", adc_sensor_value);
-
 
 #if HABILITAR_SENSOR_BME280
 					if(bme280_detectado==1){
@@ -162,22 +147,7 @@ int main(void) {
 					}
 #endif
 
-#if HABILITAR_SENSOR_SHT3X
-					if(sht3x_detectado==1){
-						sht3x_base_de_tiempo++; //incrementa base de tiempo para tomar dato sensor SHT3X
-						if(sht3x_base_de_tiempo>10){//	>10 equivale aproximadamente a 2s
-							sht3x_base_de_tiempo=0; //reinicia contador de tiempo
-							if (sht3xReadData(&sht3x_datos) == kStatus_Success) {//toma lectura humedad, temperatura
-								printf("SHT3X ->");
-								printf("temperatura:0x%X ",sht3x_datos.temperatura);	//imprime temperatura sin procesar
-								printf("CRC8_t:0x%X ",sht3x_datos.crc_temperatura);	//imprime CRC8 de temperatura
-								printf("humedad:0x%X ",sht3x_datos.humedad);	//imprime humedad sin procesar
-								printf("CRC8_h:0x%X ",sht3x_datos.crc_humedad);	//imprime CRC8 de temperatura
-								printf("\r\n");	//Imprime cambio de linea
-							}
-						}
-					}
-#endif
+
 
     	            printf("boton1:%d\r\n",leerBoton1());
     	            printf("boton2:%d\r\n",leerBoton2());
@@ -187,6 +157,46 @@ int main(void) {
     	            switch(nuevo_byte_uart){
     	            	case 'm':
     	            		ec200tEnviarMensajeDeTexto((uint8_t*)(&mensaje_text[0]),(uint8_t)(strlen(&mensaje_text[0])));
+    	            		printf("Nuevo byte:%c - 0x%2x\r\n",nuevo_byte_uart,nuevo_byte_uart);/* Imprime byte recibido por puerto LPUART0*/
+    	            		printf("Has enviado el mensaje\r\n");
+    	            		break;
+    	            	case 'R':
+    	            		encenderLedRojo();
+    	            		printf("Nuevo byte:%c - 0x%2x\r\n",nuevo_byte_uart,nuevo_byte_uart);/* Imprime byte recibido por puerto LPUART0*/
+    	            		printf("Has encendido el led rojo\r\n");
+    	            		break;
+    	            	case 'r':
+    	            		apagarLedRojo();
+    	            		printf("Nuevo byte:%c - 0x%2x\r\n",nuevo_byte_uart,nuevo_byte_uart);/* Imprime byte recibido por puerto LPUART0*/
+    	            		printf("Has apagado el led rojo\r\n");
+    	            		break;
+    	            	case 'V':
+    	            		encenderLedVerde();
+    	            		printf("Nuevo byte:%c - 0x%2x\r\n",nuevo_byte_uart,nuevo_byte_uart);/* Imprime byte recibido por puerto LPUART0*/
+    	            		printf("Has encendido el verde rojo\r\n");
+    	            		break;
+    	            	case 'v':
+    	            		apagarLedVerde();
+    	            		printf("Nuevo byte:%c - 0x%2x\r\n",nuevo_byte_uart,nuevo_byte_uart);/* Imprime byte recibido por puerto LPUART0*/
+    	            		printf("Has apagado el verde rojo\r\n");
+    	            		break;
+    	            	case 'L':
+    	            		/* Toma lectura del sensor de luz*/
+    	            		adc_light_value=getLightADC();
+    	            		printf("ADC Light: %d\r\n", adc_light_value);
+    	            		printf("Nuevo byte:%c - 0x%2x\r\n",nuevo_byte_uart,nuevo_byte_uart);/* Imprime byte recibido por puerto LPUART0*/
+    	            		break;
+    	            	case 'T':
+    	            		/* Toma lectura de temperatura*/
+    	    				temperature_value=getTemperatureValue();
+    	    				printf("Temperature: %f\r\n", temperature_value);
+    	    				printf("Nuevo byte:%c - 0x%2x\r\n",nuevo_byte_uart,nuevo_byte_uart);/* Imprime byte recibido por puerto LPUART0*/
+    	            		break;
+    	            	case 'S':
+    	            		/* Toma lectura de sensor análogico externo*/
+    	            		adc_sensor_value=getSensorADC();
+    	            		printf("ADC sensor: %d\r\n", adc_sensor_value);
+    	            		printf("Nuevo byte:%c - 0x%2x\r\n",nuevo_byte_uart,nuevo_byte_uart);/* Imprime byte recibido por puerto LPUART0*/
     	            		break;
     	            }
     			}

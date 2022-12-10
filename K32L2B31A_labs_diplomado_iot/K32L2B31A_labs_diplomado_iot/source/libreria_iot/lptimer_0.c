@@ -48,7 +48,7 @@ void LPTMR0_IRQHANDLER(void) {
   /* Place your code here */
   lptmr0_ticks++;
 
-  /* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F
+  /* Add for ARM errata 838869, affects Cor+tex-M4, Cortex-M4F
      Store immediate overlapping exception return operation might vector to incorrect interrupt. */
   #if defined __CORTEX_M && (__CORTEX_M == 4U)
     __DSB();
