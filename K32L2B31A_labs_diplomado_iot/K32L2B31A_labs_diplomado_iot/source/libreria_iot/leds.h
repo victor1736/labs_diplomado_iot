@@ -13,7 +13,8 @@
  ******************************************************************************/
 #include <hal_gpio.h>
 #include "peripherals.h"
-
+#include "pin_mux.h"
+#include "board.h"
 /*!
  * @addtogroup X
  * @{

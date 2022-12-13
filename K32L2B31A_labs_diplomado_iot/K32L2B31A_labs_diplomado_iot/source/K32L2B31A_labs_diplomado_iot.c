@@ -121,8 +121,7 @@ int main(void) {
     while(1) {
     	if(lptmr0_ticks>100){
     		lptmr0_ticks=0;
-        	toggleLedRojo();
-        	toggleLedVerde();
+
 
         	ec200tPolling();	//Actualiza FSM de modem EC25
 
